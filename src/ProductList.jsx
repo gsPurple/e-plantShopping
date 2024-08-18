@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import "./ProductList.css";
 import CartItem from "./CartItem";
 import { addItem } from "./CartSlice";
@@ -7,6 +8,19 @@ function ProductList() {
   const [showCart, setShowCart] = useState(false);
   const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
   const [addedToCart, setAddedToCart] = useState({});
+  const dispatch = useDispatch();
+  const cartItems = useSelector(state => state.cart.items);
+
+  useEffect(() => {
+    // Update addedToCart state whenever cartItems change
+    const updatedAddedToCart = cartItems.reduce((acc, item) => {
+      acc[item.name] = true;
+      return acc;
+    }, {});
+    setAddedToCart(updatedAddedToCart);
+  }, [cartItems]);
+
+  const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   const plantsArray = [
     {
@@ -341,6 +355,7 @@ function ProductList() {
                     id="mainIconPathAttribute"
                   ></path>
                 </svg>
+                <span className="cart_quantity_count">{totalItemsInCart}</span>
               </h1>
             </a>
           </div>
@@ -350,8 +365,8 @@ function ProductList() {
         <div className="product-grid">
           {plantsArray.map((category, index) => (
             <div key={index}>
-              <h1>
-                <div>{category.category}</div>
+              <h1 className="plantname_heading">
+                <div className="plant_heading">{category.category}</div>
               </h1>
               <div className="product-list">
                 {category.plants.map((plant, plantIndex) => (
@@ -367,10 +382,11 @@ function ProductList() {
                     </div>
                     <div className="product-cost">{plant.cost}</div>
                     <button
-                      className="product-button"
+                      className={`product-button ${addedToCart[plant.name] ? 'added-to-cart' : ''}`}
                       onClick={() => handleAddToCart(plant)}
+                      disabled={addedToCart[plant.name]}
                     >
-                      Add to Cart
+                      {addedToCart[plant.name] ? 'Added to Cart' : 'Add to Cart'}
                     </button>
                   </div>
                 ))}
